@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'AGScreenRecorder_Example' do
+  pod 'AGScreenRecorder', :path => '../'
+
+  target 'AGScreenRecorder_Tests' do
+    inherit! :search_paths
+
+    pod 'FBSnapshotTestCase'
+  end
+end
