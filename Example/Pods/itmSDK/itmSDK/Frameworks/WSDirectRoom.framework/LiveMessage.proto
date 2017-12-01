@@ -1,0 +1,478 @@
+syntax = "proto3";
+package com.aiyou.gamecloud.entity;
+
+import "Message.proto";
+
+enum ECommandId {
+	//proto3:every enum definition must contain a constant that maps to zero as its first element
+	PUBLIC_NULL=0;
+	//获取直播地址
+	GET_LIVE_ADDRESS=40001;
+	//主播开始直播
+	BEGIN_LIVE = 40002;
+	//直播停止直播
+	END_LIVE=40003;
+	//获取直播列表
+	LIVE_LIST=40004;
+	//看直播
+	ENTER_LIVEROOM=40005;
+	//离开直播间
+	LEAVE_LIVEROOM=40006;
+	//观众发表评论
+	ADD_LIVE_COMMENT=40007;
+	//推送给其他观众的评论
+	LIVE_COMMENT_TO_AUDIENCE=40008;
+	//推送给主播的评论
+	LIVE_COMMENT_TO_ANCHOR=40009;
+	//如果客户端发现直播间，不能正常播放，客户端上报，服务端将此直播间关闭
+    CLIENT_END_LIVE=40010;
+
+    //主播获取观众列表
+    GET_AUDIENCE_LIST=40011;
+    //主播设置某观众为嘉宾
+    SET_HONOR =40012;
+    //主播取消设置某观众为嘉宾
+    CANCEL_HONOR = 40013;
+
+
+    //视频会议
+    //发起视频会议：生成房间号，邀请码. 返回房间号，视频会议地址
+    CREATE_VIDEO_MEETING=40014;
+    //1. 连接视频会议服务器成功。 确认加入视频会议。返回邀请码
+    //2. 进入视频会议成功,如果是游戏云直播模块断开重连
+    JOIN_SUCCESS_MEETING=40015;
+    //对视频会议邀请处理:确认加入，根据邀请码，返回房间号，视频会议地址。如果房间已满，则不能加入
+    PRE_JOIN_MEETING=40016;
+    //退出视频会议
+    LEFT_MEETING=40017;
+
+
+    INVITATION_LIVE=40018;//邀请好友看直播
+    INVITATION_MEETING=40019;//邀请好友视频会议
+
+    EXPEL_MEETING=40020;//视频会议中剔除某人,房主有此权限.被踢人会收到41004消息，则其需关闭视频会议视频流
+    DISSOLVE_MEETING=40021;//解散此视频会议
+    GET_MEETING_MEMBER=40022;//查询视频会议成员
+
+    SET_MEETING_MODE=40023;//设置视频会议模式：1语音互动，2视频互动
+
+    APPLY_COMMUNICATION=40024;//申请连麦权限
+
+    RELEASE_COMMUNICATION=40025;//释放连麦权限
+
+    COMMANDID_40026 = 40026;//创建视频会议，带成员
+    COMMANDID_40027 = 40027;//加入视频会议,房间不存在，并创建
+
+
+
+
+    //观众数变化时，通知主播
+    MSG_AUDIENCE_UPDATE = 41000;
+    //某个观众，获得嘉宾资格
+    MSG_GET_HONOR = 41001;
+    //某个观众，被取消嘉宾资格
+    MSG_CANCEL_HONOR = 41002;
+    //主播停止直播广播消息
+	END_LIVE_BROADCAST=41003;
+	//视频会议中被发起人踢掉,客户端收到此命令，需要断开和视频服务器连接
+	MSG_EXPEL_MEETING=41004;
+	//视频会议发起人解散视频会议，客户端收到此命令，需要断开和视频服务器连接. 此消息发送给非发起人之外的其他在线视频会议玩家
+	MSG_DISSOLVE_MEETING=41005;
+	//视频会议成员数有变更
+	MSG_UPDATE_MEETING_MEMBER = 41006;
+	// 1 语音模式  2 视频模式
+	MSG_MEETING_MODE = 41007;
+	//连麦权限通知
+	MSG_COMMUNICATION_PERMISSION = 41008;
+	//拉人视频会议通知
+	MSG_MEETING_INVITATION = 41009;
+
+
+
+
+}
+
+
+
+enum ERtmessageStatus {
+	PUBLIC_FOR_NULL=0;
+	//成功
+	SUCCESS=200;
+	//请求参数有误
+	FAIL_LIVE_ID=-1;
+}
+
+
+message Comment{
+  string roomId = 1;
+  /**
+   * 本地msgid，校验使用
+   */
+  string msgId=2;
+  /**
+   * 发送方uid
+   */
+  string fromuid=3;
+  /**
+   * 发送方信息
+   */
+   fullUserInfo UserInfo=4;
+  /**
+   * 消息内容
+   */
+  string message = 6;
+  /**
+   * 消息类型
+   */
+  MsgType msgType = 7;
+  /**
+   * 时间戳
+   */
+   int64 time = 9;
+
+   string color = 10;//弹幕颜色
+  enum MsgType{
+  	  TEXT = 0;
+      IMAGE = 1;
+      AUDIO = 2;
+      VIDEO = 3;
+      LINK = 4;
+  }
+}
+message LiveRoom{
+	string roomId = 1;
+	fullUserInfo  userinfo=2;
+	LiveAddress liveAddress=3;
+	Estatus  status=4;
+	string interactAddr = 5;//连麦地址
+	enum Estatus{
+  	  ONLINE = 0;
+      OFFLINE = 1;
+    }
+}
+
+message LiveAddress{
+	string liveUpload = 1;//直播上传地址
+	string liveHLS = 2;//HLS播放
+	string liveRTMP = 3;//RTMP播放
+	string liveVOD = 4;//点播地址
+}
+
+//查询直播地址
+message request_40001{
+
+}
+message response_40001{
+    int32 result=1;
+	string message=2;
+	LiveRoom liveRoom=3;
+}
+
+/**
+ * 开始直播
+ */
+message request_40002{
+}
+message response_40002{
+	int32 result=1;
+	string message=2;
+}
+/**
+ * 停止直播
+ */
+message request_40003{
+}
+message response_40003{
+	int32 result=1;
+	 string message=2;
+}
+
+/**
+ * 获取游戏的直播间列表
+ */
+message request_40004{
+	string gameId = 1;
+	 LiveRoom.Estatus status=2;
+	 int32 pageNumber=3;//当前查询页
+	 int32 size=4;//每页显示数量
+}
+message response_40004{
+	int32 pageCount=1;//总页数
+	int32 pageNumber=2;//当前页数
+	repeated LiveRoom room=3;
+}
+/**
+ * 进入直播间
+ */
+message request_40005{
+	string roomId = 1;
+}
+message response_40005{
+	int32 result=1;
+	string message=2;
+	LiveRoom liveRoom = 3;//直播间信息
+}
+/**
+ * 离开直播间
+ */
+message request_40006{
+	string roomId = 1;
+}
+message response_40006{
+}
+/**
+ * 观众 在直播间发表评论
+ */
+message request_40007{
+	Comment comment=1;
+}
+message response_40007{
+	int32 result=1;
+	 string message=2;
+}
+/**
+ * 广播直播间评论
+ */
+message response_40008{
+	Comment comment=1;
+}
+/**
+ * 推送给主播的评论
+ */
+message response_40009{
+	Comment comment=1;
+}
+message request_40010{
+	string roomId = 1;
+}
+//获取观众列表
+message request_40011{
+	string roomId = 1;
+	int32 pageNo = 2;
+	int32 pageSize = 3;
+}
+message response_40011{
+    int32 resultCode = 1;
+     string resultMessage = 2;
+    repeated fullUserInfo  audiences = 3;//观众集合
+    repeated fullUserInfo  honors = 4;//嘉宾集合
+     PagePB page = 5;
+}
+//设置某观众为嘉宾
+message request_40012{
+	string roomId = 1;//直播房间
+	string serverId = 2;//此用户游戏服
+	string ticketId = 3;//此用户ID
+}
+message response_40012{
+	int32 resultCode = 1;
+     string resultMessage = 2;
+    repeated fullUserInfo  honors = 3;//当前嘉宾
+}
+//取消某观众为嘉宾
+message request_40013{
+	string roomId = 1;//直播房间
+	string serverId = 2;//此用户游戏服
+	string ticketId = 3;//此用户ID
+}
+message response_40013{
+	int32 resultCode = 1;
+     string resultMessage = 2;
+    repeated fullUserInfo  honors = 3;//当前嘉宾
+}
+message response_41000{
+    bool flag = 1;//true 观众增加，false 观众减少
+    int32 totalNum =2;//观众总数
+    string serverId = 3;//观众所在服
+    string ticketId = 4;//观众ID
+    fullUserInfo userinfo = 5;//此观众详细信息
+}
+
+message MeetingUser{
+	int32 meetingId = 1;//房间内ID
+	fullUserInfo userinfo = 2;
+	bool landlord = 3;//是否是发起人
+}
+//发起视频会议
+message request_40014{
+    string roomNo = 1;//可选的房间号
+}
+message response_40014{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string meetingRoomNo = 3;//视频会议房间号
+    string meetingUrl = 4;//视频会议地址
+    int32 meetingId = 5;//房间内ID
+    bool  landLord = 6;//是否发起人
+    int32 meetingState = 7;//房间状态 0:准备，1：语音互动,2：视频互动
+    string invitationCode = 8;//邀请码
+}
+//创建视频会议，带成员
+message request_40026{
+	string meetingNO = 2;
+	repeated string users = 1;//被邀请进视频会议的成员
+}
+message response_40026{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string meetingRoomNo = 3;//视频会议房间号
+    string meetingUrl = 4;//视频会议地址
+    int32 meetingState = 5;//房间状态 0:准备，1：语音互动,2：视频互动
+    string invitationCode = 6;//邀请码
+    repeated MeetingUser meetingUsers = 7;//房间成员：房间内ID
+    repeated string users = 8;//没有进入房间的用户
+}
+//加入视频会议,视频会议房间不存在，则创建
+message request_40027{
+	string meetingRoomNo = 1;//视频会议房间号
+}
+message response_40027{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string meetingRoomNo = 3;//视频会议房间号
+    string meetingUrl = 4;//视频会议地址
+    int32 meetingState = 5;//房间状态 0:准备，1：语音互动,2：视频互动
+    string invitationCode = 6;//邀请码
+    repeated MeetingUser meetingUser = 7;//房间成员：房间内ID
+}
+
+//连接视频会议服务器成功。 确认加入视频会议。返回邀请码
+message request_40015{
+    string meetingRoomNo = 1;
+}
+message response_40015{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string invitationCode = 3;//邀请码
+    int32 inviteWaitTime = 4;//发送邀请等待加入时间,如果超时没有加入，则将等待窗口去掉
+}
+message request_40016{
+    string invitationCode = 1;//邀请码
+}
+message response_40016{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string meetingRoomNo = 3;////视频会议房间号
+    string meetingUrl = 4;//视频会议地址
+    int32 meetingId = 5;//房间内ID
+    bool  landLord = 6;//是否发起人
+    int32 meetingState = 7;//房间状态 0:准备，1：语音互动,2：视频互动
+}
+//退出视频会议
+message request_40017{
+
+}
+message response_40017{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+}
+//邀请好友看直播
+message request_40018{
+   string roomId = 1;//自己的直播房间号. 收到此消息后调用40005
+   repeated string ticketIds = 2;//好友ID
+}
+message response_40018{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+}
+//邀请好友看直播
+message request_40019{
+   string invitationCode = 1;//邀请好友视频会议。收到此消息后调用40016
+   repeated string ticketIds = 2;//好友ID
+}
+message response_40019{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+}
+//视频会议群主踢人
+message request_40020{
+	string meetingRoomNo = 1;
+	string ticketId = 2;
+}
+message response_40020{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string ticketId = 3;
+}
+//视频会议解散
+message request_40021{
+	string meetingRoomNo = 1;
+}
+message response_40021{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+}
+//查询视频会议成员
+message request_40022{
+	string meetingRoomNo = 1;
+}
+message response_40022{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    repeated MeetingUser userList = 3;
+}
+//设置视频会议模式：1语音互动，2视频互动
+message request_40023{
+	string meetingRoomNo = 1;
+	int32 meetingState = 2;
+}
+message response_40023{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+    string meetingRoomNo = 3;
+    int32 meetingState = 4;
+}
+
+//申请连麦权限
+message request_40024{
+	string roomId = 1;
+}
+message response_40024{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+	string roomId = 3;
+	bool flag = 4;//true申请成功 false申请失败
+}
+//释放连麦权限
+message request_40025{
+	string roomId = 1;
+}
+message response_40025{
+	int32 resultCode = 1;
+    string resultMessage = 2;
+	string roomId = 3;
+}
+
+
+
+message response_41004{
+	string meetingRoomNo = 1;
+}
+message response_41005{
+	string meetingRoomNo = 1;
+}
+
+//视频会议成员数有变更
+message response_41006{
+	bool flag = 1;//true 新增成员，false 离开成员
+    MeetingUser userinfo = 2;//成员信息
+}
+//视频会议发起人设置视频会议模式后，其他人参与人员接收此消息
+message response_41007{
+	string meetingRoomNo = 1;//视频会议房间号
+   int32 meetingState = 2;//1语音互动，2视频互动
+}
+//当嘉宾收到此消息后：TRUE 可以申请连麦 false 不能申请连麦
+message response_41008{
+	string roomId = 1;//视频会议房间号
+    bool flag = 2;//true 可以申请权限 false 不可以申请
+    string ticketId = 3;//主播收到此消息，添加，取消小喇叭
+}
+//拉人视频会议
+message response_41009{
+	string invitationCode = 1;//邀请码
+	string meetingNo = 3;//房间号
+    repeated MeetingUser users = 2;//视频会议成员
+}
+
+

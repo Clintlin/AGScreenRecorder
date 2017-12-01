@@ -1,0 +1,6 @@
+framework module itmSDK {
+  umbrella header "itmSDK.h"
+
+  export *
+  module * { export * }
+}

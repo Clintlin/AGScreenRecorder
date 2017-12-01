@@ -1,0 +1,64 @@
+syntax = "proto3";
+package com.aiyou.gamecloud.entity;
+
+enum SystemCommandId {
+	    SYSTEM_ERROR=0;//系统异常
+		PUBLIC_ERROR_FLOATAGE=1;//飘字提示
+		PUBLIC_ERROR_WINDOWS=2;//弹窗提示
+		PUBLIC_THIRDPART_MESSAGE=3;//第三方推送的交互消息
+		SYSTEM_MESSAGE=4;//系统消息
+		REGISTER_SUCCESS=100;//客户端向网关注册成功
+		FORCED_OFFLINE=101;//强制下线，断开channel并发送强制下线通知
+		SYSTEM_MAINTENANCE=102;//系统维护，断开channel
+		DOUBLE_LOGIN=103;//双线登录，断开channel并发送异地登录通知
+		REGISTER_RID_SUCCESS=104;//角色登录网关成功
+		REGISTER_RID_OFFLINE=105;//角色未登录
+		REGISTER_UID_OFFLINE=106;//uid未登录
+		REGISTER_AGAIN=107;//连接断开，需要重连
+		REGISTER_MISSING_FIELD=108;//网关注册失败，缺少必要字段
+
+		THIRDPARTY_INVALID_1=109;//用户不合法
+		THIRDPARTY_INVALID_2=110;//token不合法
+		THIRDPARTY_INVALID_3=111;//token过期
+		THIRDPARTY_INVALID_4=112;//用户信息不存在
+		THIRDPARTY_INVALID_5=113;//第三方验证服务器异常
+
+		HEART=999;//心跳
+}
+//系统消息
+message response_4{
+	SMType smType = 1;//消息ID
+	response_2 payload = 2;//消息体
+	enum SMType{
+        SM100 = 0;//管理员消息
+        SM101 = 1;//邀请消息
+	}
+}
+message response_106{
+	int32 commandId = 1;//session过期时的请求ID
+}
+//公共协议——飘字
+message	response_1{
+	string content = 1;
+	string rtkey=2;
+}
+//公共协议——弹板
+message	response_2{
+	string content = 1;
+	string leftButton=2;
+	string leftUrl=3;
+	string rightButton=4;
+	string rightUrl=5;
+	string rtkey=6;
+}
+
+//公共协议——推送的消息（通过第三方交互产生的消息，例如微信分享的点赞、阅读；直播频道的送花、回复等）
+message	response_3{
+	ThirdPartMessageType type=1;
+	string content = 2;
+}
+
+enum ThirdPartMessageType {
+	WEIXIN_SHARE=0;
+	LIVE_COMMENT=1;
+}

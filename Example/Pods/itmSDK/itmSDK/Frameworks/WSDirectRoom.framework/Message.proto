@@ -1,0 +1,198 @@
+syntax = "proto3";
+package com.aiyou.gamecloud.entity;
+//请求参数包装类
+message RequestMessage{
+	//请求类型
+	RequestType requestType=1;
+	enum RequestType {
+		//请求注册模块,用户注册需携带ID，昵称，头像,code
+		CLIENT_REGISTER=0;
+		//请求用户模块
+		CLIENT_TO_USER=1;
+		//请求游戏模块
+		CLIENT_TO_GAME=2;
+		//请求聊天模块
+		CLIENT_TO_IMSERVER=3;
+		//请求分享模块
+		CLIENT_TO_SHARE=4;
+		//请求好友模块
+		CLIENT_TO_FRIEND=5;
+		//请求直播模块
+		CLIENT_TO_LIVE=6;
+		//视频会议
+		CLIENT_TO_MEETING=7;
+		//请求排行榜模块
+		CLIENT_TO_RANK=8;
+		//请求公会模块
+		CLIENT_TO_GUILD=9;
+		//请求背包模块
+		CLIENT_TO_KNAPSACK=10;
+		HEART=999;
+	}
+	//RequestMessage中属性gameId,serverId,ticket只有在网关注册时必填，其他请求不用填写
+	string gameId=2;
+	string serverId=3;
+	string ticket=4;
+
+	string token = 5;//第一次登录使用
+
+	bool isH5 = 7;//是否是H5请求
+	//请求，响应消息包装类
+	Command message=6;
+
+}
+
+message Command{
+	int32 commandId=1;
+	bytes message=2;
+}
+
+message BroadcastMessage{
+	//可重复字段,接收消息的userId
+	string gameId=1;
+	string serverId=2;
+	repeated string userIds = 3;
+	repeated string filterIds = 4;
+	Command message=5;
+}
+//网关间交互协议
+message GateInteractiveMessage{
+	string gameId=1;
+	string serverId=2;
+	string ticket = 3;
+	Command message=4;
+}
+//资源基础信息
+message baseMessage{
+	//资源key
+	string key=1;
+	//资源名称
+	string name=2;
+	//资源图片ID
+	string img=3;
+	//资源数量
+	int64 value=4;
+	//是否可见
+	bool isVisible = 5;
+}
+enum UserState{
+	ONLINE = 0;//在线
+	OFFLINE = 1;//离线
+	READY = 2;//备战
+	BATTLE = 3;//战斗中
+}
+message KVEntry{
+	string key = 1;
+	string value = 2;
+}
+
+//基础用户数据
+message BaseUserInfo{
+	string ticketId = 1;
+	string nickName = 2;
+	string icon = 3;
+	string code = 4;
+}
+
+//角色基础信息
+message fullUserInfo{
+	//用户id
+	string ticketId = 1;//用户ticket
+	int64 ticketCode = 17;//用户code
+	//用户所在服
+	string serverId = 16;
+	//昵称
+	string nickname=2;
+	//等级
+	int32 level=3;
+    //性别
+	Sex sex=4;
+	//基础数值
+	//repeated baseMessage baseMessage=5;
+	//头像地址
+	string iconAddress=6;
+    //头像类型  0 本地头像，1 非本地头像
+	IconType iconType=7;
+
+	UserState userState=8;//用户状态
+
+	string os = 11;//操作系统标识
+	string token = 12;//iOS 的设备标识
+
+	//GuildPB guildPB = 9;//公会信息
+    //string chatId = 10;//自己创建的聊天群组  格式：id|name
+    //repeated string chatJoin = 13;//我加入的聊天群组 格式：id|name
+    //string battleId = 14;//当前团战ID 格式：团战群组ID|团战群组类型
+
+    repeated KVEntry kvEntries = 15;
+}
+//性别属性
+enum Sex{
+	female = 0;//女性
+	male = 1;//男性
+	noneSex = 2;//未知，当为未知是，不用更新
+}
+//头像类型属性
+enum IconType{
+	local = 0;//本地头像
+	online = 1;//网络头像
+	noneType = 2;//未知,当为未知时，不用更新
+}
+//分页对象
+message PagePB{
+	int32 pageNo = 1;//当前页,从第一页开始
+	int32 pageSize = 2;//每页条数
+	int32 totalItems = 3;//总条数
+	int32 totalPages = 4;//总页数
+}
+
+message GuildMemberInfo{
+	fullUserInfo fullUserInfo = 1;
+	GuildPosition position = 2;//公会职位:1 会长 2 管理员 3 普通会员
+}
+enum GuildPosition{
+	PRESIDENT = 0;//会长
+	MANAGER = 1;//管理员
+	REGULAR = 2;//普通会员
+}
+//战斗状态，团战组用，公会状态
+enum BTStatusPB{
+	STATUS_NOT_START = 0;//未开始
+	STATUS_READY = 1;//备战
+	STATUS_UNDERWAY = 2;//进行中
+	STATUS_END = 3;//结束,更新的时候用
+}
+ //群组类型
+enum BTTypePB{
+    TYPE_CHAT = 0;//聊天组类型
+    TYPE_BATTLE = 1;//个人团战组类型
+    TYPE_GUILD_BATTLE = 2;//公会团战群组
+}
+message GuildPB{
+	string id = 1;
+	string name = 2;//公会名称
+	string guildIcon = 3;//
+	GuildMemberInfo creator = 4;//公会创建者
+	GuildMemberInfo president = 5;//会长
+	string description = 6;//公会说明
+	string createTime = 7;//创建时间
+	repeated GuildAttrPB guildAttrPB = 8;//公会属性
+	string teamId = 9;//公会团战群组ID
+	BTStatusPB btStatusPB = 10;//公会团战群组状态
+	int32 capacity = 11;//最大容量
+	int32 used = 12;//当前人数
+}
+message GuildAttrPB{
+	string key = 1;//key
+	string name = 2;//名称
+	string img = 3;//图标
+	int64  amount = 4;//数量
+	bool isVisible = 5;//是否可见
+}
+//好友偏好设置
+enum FSType{
+	FSNone = 0;//不更新
+	FSAuto = 1;//自动添加
+	FSAudit = 2;//需要审核
+	FSForbiden = 3;//拒绝添加
+}

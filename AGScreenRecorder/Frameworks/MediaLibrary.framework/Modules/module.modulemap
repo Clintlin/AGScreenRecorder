@@ -1,0 +1,6 @@
+framework module MediaLibrary {
+  umbrella header "MediaLibrary.h"
+
+  export *
+  module * { export * }
+}

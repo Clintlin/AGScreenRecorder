@@ -1,0 +1,6 @@
+framework module WSDirectRoom {
+  umbrella header "WSDirectRoom.h"
+
+  export *
+  module * { export * }
+}

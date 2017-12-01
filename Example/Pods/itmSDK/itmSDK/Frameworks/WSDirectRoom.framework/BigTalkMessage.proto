@@ -1,0 +1,420 @@
+syntax = "proto3";
+package com.aiyou.gamecloud.entity;
+
+import "Message.proto";
+
+enum BigTalkCommand{
+    UN_USED=0;
+	SUCCESS = 200;//响应成功
+	FAIL = -200;//响应失败
+	FAIL_FN_NOT_OPEN = 189;//功能未开放
+
+	RT10000 = 10000;//发送P2P消息
+	RT10002 = 10002;//接收P2P消息
+	RT10003 = 10003;//P2P历史消息
+
+	RT12000 = 12000;//发送世界聊天
+	RT12002 = 12002;//接收世界聊天
+	RT12003 = 12003;//世界聊天历史消息
+
+	RT13000 = 13000;//发送公会消息
+	RT13001 = 13001;//接收公会消息
+	RT13002 = 13002;//公会历史消息查询
+
+	RT14000 = 14000;//发送群组聊天消息
+	RT14001 = 14001;//接收群组聊天消息
+	RT14002 = 14002;//群组聊天历史消息
+	RT14003 = 14003;//创建群组聊天
+	RT14004 = 14004;//拉人进群组,群组成员都可以邀请她人进入群组。无需对方同意。
+	RT14005 = 14005;//退出群组,群组成员都可以退出群组
+	RT14006 = 14006;//群组踢人，创建群组的人可以提其他成员
+	RT14007 = 14007;//解散群组,创建群组的人可以解散群组
+	RT14008 = 14008;//查询群组成员
+	RT14009 = 14009;//修改群聊名称
+	RT14010 = 14010;//查询我的群组
+	MSG_14011 = 14011;//邀请进群通知。谁邀请了谁进群。发给所有群成员
+	MSG_14012 = 14012;//退群通知。谁退群了
+	MSG_14013 = 14013;//群解散通知
+	MSG_14014 = 14014;//群名称改变通知
+	RT14015 = 14015;//加入群组
+
+	RT15000 = 15000;//查询离线消息
+	RT15001 = 15001;//举报用户
+
+}
+
+/**
+ * 消息对象
+ */
+message Chat{
+  /**
+   * 本地msgid，校验使用
+   * 比如发送失败，可以重发此消息
+   */
+  string msgId=1;
+  /**
+   * 消息类型
+   */
+  MsgType msgType = 2;
+  /**
+   * 发送方uid
+   * 每个消息都需要注明发送者。尤其是世界聊天，群聊
+   */
+  string fromTicketId=3;
+  /**
+    *  昵称
+    *  发送者昵称
+    */
+  string fromNickName = 4;
+ /**
+    * 头像索引
+    * 发送者头像
+    */
+  string fromIcon = 5;
+  /**
+   * 接收方uid
+   */
+  string toTicketId = 6;
+  /**
+   * 消息内容
+   * 消息类型为text时，文本消息
+   */
+  string message = 7;
+
+  string thumbnail = 11;//缩略图地址
+  /**
+   * 群聊时，被@成员集合
+   */
+  repeated string callTicketIds = 8;
+  /**
+   * 时间戳
+   */
+  int64 time = 9;
+	/**
+    * 音频时间
+    */
+  int32 soundTime = 10;
+  
+  enum MsgType{
+  	  TEXT = 0;
+      IMAGE = 1;
+      AUDIO = 2;
+      VIDEO = 3;
+      LINK = 4;
+  }
+
+}
+message RichText{
+	enum RichTextType{
+		WebPage = 0;//网页
+        Command = 1;//指令
+	}
+	RichTextType type = 1;
+	string title = 2;//标题
+	string description = 3;//描述
+	string url = 4;//网页地址
+	map<string,string> paras = 5;//参数
+	int32 commandId = 6;//命令ID
+}
+
+/**
+ * 客户端发送P2P消息
+ */
+message request_10000{
+	Chat message=1;
+}
+
+message response_10000{
+	int32 result=1;
+	string message=2;
+	string msgId=3;
+	int64 time = 4;//发送时间
+}
+//接收P2P消息
+message response_10002{
+	Chat message=1;//P2P聊天体
+}
+/**
+ * 拉取私聊历史消息
+ */
+message request_10003{
+	string other = 1;//聊天人
+	int64 startTime = 2;//会话查询开始时间
+    int64 endTime = 3;//会话查询结束时间
+    PagePB pagePB = 4;//分页
+}
+message response_10003{
+	int32 resultCode=1;
+	string resultMessage=2;
+	repeated Chat message=3;
+	PagePB pagePB = 4;//分页
+}
+
+/**
+ * 发送世界聊天
+ */
+message request_12000{
+	/**
+	 * Msg.Chat
+	 */
+	Chat message=1;
+}
+message response_12000{
+	int32 result=1;
+	string msgId=2;
+	string message=3;
+}
+//接收世界消息
+message response_12002{
+	Chat message=1;
+}
+/**
+ * 查询世界聊天历史消息
+ */
+message request_12003{
+    int64 startTime = 1;//会话查询开始时间
+    int64 endTime = 2;//会话查询结束时间
+    PagePB pagePB = 3;//分页
+}
+message response_12003{
+	int32 resultCode=1;
+	string resultMessage=2;
+	repeated Chat message=3;
+	PagePB pagePB = 4;//分页
+}
+/**
+ *公会聊天
+ */
+message request_13000{
+	string guildId = 1;//公会id
+	Chat message=2;
+}
+message response_13000{
+	int32 resultCode=1;
+	string resultMessage=2;
+}
+//接收公会聊天消息
+message response_13001{
+	string guildId = 1;//公会id
+	Chat message=2;
+}
+/**
+ * 拉取公会历史消息
+ */
+message request_13002{
+   string guildId=1;//公会id
+   int64 startTime = 2;//会话查询开始时间
+   int64 endTime = 3;//会话查询结束时间
+   PagePB pagePB = 4;//分页
+}
+message response_13002{
+	int32 resultCode=1;
+	string resultMessage=2;
+	repeated Chat message=3;
+	PagePB pagePB = 4;//分页
+}
+/**
+ *组队聊天
+ */
+message request_14000{
+	string btId = 1;//组队id
+	Chat message=2;
+}
+message response_14000{
+	int32 resultCode=1;
+	string resultMessage=2;
+	string msgId = 3;//消息编号
+}
+//接收组队消息
+message response_14001{
+	string btId = 1;//组队id
+	Chat message=2;
+
+}
+/**
+ * 拉取组队历史消息
+ */
+message request_14002{
+   string btId=1;//公会id
+   int64 startTime = 2;//会话查询开始时间
+   int64 endTime = 3;//会话查询结束时间
+   PagePB pagePB = 4;//分页
+}
+message response_14002{
+	int32 resultCode=1;
+	string resultMessage=2;
+	repeated Chat message=3;
+	PagePB pagePB = 4;//分页
+}
+/**
+ * 创建群组聊天
+ */
+message request_14003{
+	string name = 1;//群组名称
+    repeated string members = 2;//创建群组时，可以拉其他成员一起组建群组
+}
+message response_14003{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组ID
+	string name = 4;//群组名称
+    repeated string members = 5;//创建群组时，可以拉其他成员一起组建群组
+}
+/**
+ * 拉人进群组
+ */
+message request_14004{
+	string btId = 1;//群组Id
+    repeated string members = 2;//被邀请进群组人员ID
+}
+message response_14004{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组Id
+    repeated string members = 4;//被邀请进群组人员ID
+}
+/**
+ * 退出群组
+ */
+message request_14005{
+	string btId = 1;//群组Id
+}
+message response_14005{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组Id
+}
+/**
+ * 踢人,创建人可以踢人
+ */
+message request_14006{
+	string btId = 1;//群组Id
+    string member = 2;//被踢成员ID
+}
+message response_14006{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组Id
+    string member = 4;//被踢成员ID
+}
+/**
+ * 解散群组,创建人可以解散
+ */
+message request_14007{
+	string btId = 1;//群组Id
+}
+message response_14007{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组Id
+}
+/**
+ * 查询群组成员
+ */
+message request_14008{
+	string btId = 1;//群组Id
+}
+message response_14008{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组Id
+    repeated BaseUserInfo members = 4;//群组成员
+}
+/**
+ * 修改群组名称
+ */
+message request_14009{
+	string btId = 1;//群组Id
+	string name = 2;
+}
+message response_14009{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组Id
+    string name = 4;
+}
+/**
+ * 查询我的群组
+ */
+message request_14010{
+
+}
+message response_14010{
+	int32 resultCode=1;
+	string resultMessage=2;
+	map<string,string> teamMap = 3;//btId:name 群组ID：群组名称
+}
+/**
+ * 邀请进群通知。谁邀请了谁进群。发给所有群成员
+ *
+ * **/
+message response_14011{
+	string btId = 1;//群组ID
+
+	BaseUserInfo from = 2;//邀请者
+
+	repeated BaseUserInfo toList = 3;//被邀请者集合
+}
+/**
+ * 退群，踢人通知
+ */
+message response_14012{
+	string btId = 1;//群组ID
+	bool flag = 2;//true 主动退群，false 被踢
+
+	BaseUserInfo from = 3;//踢人者。如果是主动退群，则为空
+
+	BaseUserInfo to = 4;//被踢者，或主动退群者
+}
+/**
+ * 群组解散通知
+ */
+message response_14013{
+	string btId = 1;//群组ID
+}
+/**
+ * 修改群名通知
+ */
+message response_14014{
+	string btId = 1;//群组ID
+
+	BaseUserInfo from = 2;//修改群名称者
+
+	string name = 3;//新的群名
+}
+//加入群组
+message request_14015{
+	string btId = 1;//群组ID
+}
+message response_14015{
+	int32 resultCode=1;
+	string resultMessage=2;
+	string btId = 3;//群组ID
+}
+
+
+
+message request_15000{
+
+}
+message response_15000{
+    int32 resultCode=1;
+	string resultMessage=2;
+	map<string,int32> historyMessage = 3;//离线消息,用户code对应响应未读消息
+}
+
+message request_15001{
+    string ticketId = 1;//被举报人ID
+    ReportType reportType = 2;
+    enum ReportType{
+    	SEXY = 0;//色情
+    	ABUSE = 1;//辱骂
+    	OTHER = 2;//其他
+    }
+}
+message response_15001{
+    int32 resultCode=1;
+	string resultMessage=2;
+	string ticketId = 3;//被举报人ID
+}
+

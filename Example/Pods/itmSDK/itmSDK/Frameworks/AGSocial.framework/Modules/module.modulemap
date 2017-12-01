@@ -1,0 +1,6 @@
+framework module AGSocial {
+  umbrella header "AGSocial.h"
+
+  export *
+  module * { export * }
+}

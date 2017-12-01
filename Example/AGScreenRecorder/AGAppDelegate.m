@@ -7,12 +7,13 @@
 //
 
 #import "AGAppDelegate.h"
-
+#import <AGSocial/AGSocial.h>
 @implementation AGAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    AGSocial_WXShareRegister("wx5f3a0bb8826bae35", "226197669f4eb112c34fee16e11e4927");
+    AGSocial_QQShareRegister("1105483024");
     return YES;
 }
 
@@ -41,6 +42,19 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+-(BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url{
+
+    AGSocial_OpenURL(url);
+    
+    return YES;
+}
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+    AGSocial_OpenURL(url);
+    return YES;
 }
 
 @end
